@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PathFinder Pro AI | Mission Control</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
+        
+        :root {
+            --primary: #0ea5e9;
+            --secondary: #6366f1;
+            --accent: #d946ef;
+            --bg: #020617;
+            --card: rgba(15, 23, 42, 0.6);
+        }
+
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: #f1f5f9; overflow-x: hidden; }
+
+        .glass { background: var(--card); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; }
+        .neon-border { border: 1px solid rgba(14, 165, 233, 0.3); box-shadow: 0 0 20px rgba(14, 165, 233, 0.1); }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #0ea5e9 0%, #6366f1 50%, #d946ef 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+
+        .roadmap-card { 
+            border-left: 4px solid var(--primary); 
+            background: rgba(14, 165, 233, 0.05); 
+            transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .roadmap-card:hover { transform: scale(1.02) translateX(10px); background: rgba(14, 165, 233, 0.15); }
+
+        .tab-btn { transition: 0.3s; position: relative; }
+        .tab-btn.active { color: var(--primary); }
+        .tab-btn.active::after { content: ''; position: absolute; bottom: -8px; left: 0; width: 100%; height: 3px; background: var(--primary); border-radius: 10px; box-shadow: 0 0 10px var(--primary); }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
+        
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .animate-slide { animation: slideUp 0.6s ease-out forwards; }
+    </style>
+</head>
+<body class="p-4 lg:p-8">
+
+    <div class="max-w-[1600px] mx-auto">
+        <!-- GLOBAL HEADER -->
+        <header class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-12 animate-slide">
+            <div>
+                <div class="flex items-center gap-4 mb-2">
+                    <div class="bg-sky-500/20 p-3 rounded-2xl border border-sky-500/40 shadow-[0_0_15px_rgba(14,165,233,0.3)]">
+                        <i data-lucide="shield-check" class="w-8 h-8 text-sky-400"></i>
+                    </div>
+                    <h1 class="text-5xl font-black gradient-text tracking-tighter">PathFinder Pro AI</h1>
+                </div>
+                <p class="text-slate-500 font-medium text-lg ml-2 flex items-center gap-2">
+                    <span class="w-2 h-2 bg-emerald-500 rounded-full animate-ping"></span> 
+                    Next-Gen Academic Recovery & Behavioral Insights
+                </p>
+            </div>
+
+            <div class="flex gap-4">
+                <div id="momBadge" class="hidden glass px-6 py-4 border-emerald-500/20 flex items-center gap-4 animate-slide">
+                    <div class="p-2 bg-emerald-500/20 rounded-lg"><i data-lucide="trending-up" class="w-5 h-5 text-emerald-400"></i></div>
+                    <div>
+                        <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Velocity</p>
+                        <p id="momVal" class="text-emerald-400 font-black text-xl">+0.0</p>
+                    </div>
+                </div>
+                <button onclick="window.print()" class="glass px-6 py-4 border-white/5 hover:bg-white/5 transition flex items-center gap-2">
+                    <i data-lucide="download" class="w-5 h-5"></i>
+                    <span class="text-xs font-bold uppercase tracking-widest">Export Report</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- NAVIGATION -->
+        <nav class="flex gap-12 mb-10 border-b border-white/5 pb-4 px-2">
+            <button onclick="switchTab('dashboard')" id="btn-dashboard" class="tab-btn active text-sm font-black uppercase tracking-widest">Diagnostic Lab</button>
+            <button onclick="switchTab('theory')" id="btn-theory" class="tab-btn text-slate-500 text-sm font-black uppercase tracking-widest">Research Abstract</button>
+            <button onclick="switchTab('team')" id="btn-team" class="tab-btn text-slate-500 text-sm font-black uppercase tracking-widest">The Reactors</button>
+        </nav>
+
+        <!-- MAIN CONTENT -->
+        <main>
+            <!-- TAB: DASHBOARD -->
+            <section id="tab-dashboard" class="grid grid-cols-1 xl:grid-cols-12 gap-8 animate-slide">
+                <!-- Sidebar Inputs -->
+                <div class="xl:col-span-4 space-y-6">
+                    <div class="glass p-8 neon-border space-y-8">
+                        <h3 class="text-xl font-black flex items-center gap-3">
+                            <i data-lucide="settings-2" class="text-sky-400"></i> MISSION PARAMETERS
+                        </h3>
+                        
+                        <div class="space-y-6">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="space-y-2">
+                                    <label class="text-[10px] font-black text-slate-500 uppercase">Degree</label>
+                                    <select id="degree" class="w-full bg-slate-900/50 p-4 rounded-2xl border border-white/10 text-sm font-bold focus:border-sky-500 outline-none transition">
+                                        <option value="B.Tech">B.Tech (CSE)</option>
+                                        <option value="MBA">MBA (Core)</option>
+                                    </select>
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="text-[10px] font-black text-slate-500 uppercase">Subject</label>
+                                    <select id="subject" class="w-full bg-slate-900/50 p-4 rounded-2xl border border-white/10 text-sm font-bold focus:border-sky-500 outline-none transition">
+                                        <option value="Data Structures">Data Structures</option>
+                                        <option value="Math">Advanced Math</option>
+                                        <option value="Finance">Corporate Finance</option>
+                                        <option value="Marketing">Market Research</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="space-y-4 p-4 bg-white/5 rounded-2xl">
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-xs font-bold text-slate-400 uppercase">Attendance</span>
+                                    <span id="attDisp" class="text-sky-400 font-black">75%</span>
+                                </div>
+                                <input type="range" id="attendance" value="75" class="w-full" oninput="attDisp.innerText=this.value + '%'">
+                                
+                                <div class="grid grid-cols-2 gap-4 mt-4">
+                                    <input type="number" id="g1" placeholder="Midterm 1" class="bg-slate-950 p-4 rounded-xl border border-white/5 text-sm outline-none focus:border-sky-500">
+                                    <input type="number" id="g2" placeholder="Midterm 2" class="bg-slate-950 p-4 rounded-xl border border-white/5 text-sm outline-none focus:border-sky-500">
+                                </div>
+                            </div>
+
+                            <div class="p-6 bg-rose-500/5 rounded-3xl border border-rose-500/10 space-y-6">
+                                <h4 class="text-[10px] font-black text-rose-400 uppercase tracking-widest flex items-center gap-2">
+                                    <i data-lucide="heart" class="w-3 h-3"></i> Wellbeing Check
+                                </h4>
+                                <div>
+                                    <div class="flex justify-between text-[10px] text-slate-500 mb-2 font-bold"><span>MOOD VIBE</span><span id="moodVal">7/10</span></div>
+                                    <input type="range" id="mood" min="1" max="10" value="7" class="w-full accent-rose-500" oninput="moodVal.innerText=this.value + '/10'">
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-[10px] text-slate-500 mb-2 font-bold"><span>SLEEP DEPTH</span><span id="sleepVal">7h</span></div>
+                                    <input type="range" id="sleep" min="2" max="12" value="7" class="w-full accent-rose-500" oninput="sleepVal.innerText=this.value + 'h'">
+                                </div>
+                            </div>
+
+                            <button onclick="runInference()" class="w-full py-6 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 rounded-2xl font-black text-xs uppercase tracking-[0.3em] shadow-[0_10px_30px_rgba(14,165,233,0.2)] transition active:scale-95">
+                                Initialize AI Assessment
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Analysis Area -->
+                <div id="resultsView" class="hidden xl:col-span-8 space-y-8">
+                    <!-- Top Metrics -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div id="statusCard" class="glass p-8 text-center border-t-4 transition-all">
+                            <p class="text-[10px] font-black text-slate-500 uppercase mb-2">Academic Risk</p>
+                            <h2 id="statusText" class="text-4xl font-black tracking-tighter italic"></h2>
+                        </div>
+                        <div class="glass p-8 text-center border-white/10">
+                            <p class="text-[10px] font-black text-slate-500 uppercase mb-2">Final Forecast</p>
+                            <h2 id="scoreText" class="text-4xl font-black tracking-tighter text-sky-400"></h2>
+                        </div>
+                        <div class="glass p-8 text-center border-white/10">
+                            <p class="text-[10px] font-black text-slate-500 uppercase mb-2">Volatility</p>
+                            <h2 id="volText" class="text-4xl font-black tracking-tighter"></h2>
+                        </div>
+                    </div>
+
+                    <!-- Charts Row -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div class="glass p-8 rounded-[2rem] border-white/5">
+                            <h4 class="text-sm font-black text-slate-400 uppercase mb-6 flex items-center gap-2">
+                                <i data-lucide="bar-chart-3" class="w-4 h-4"></i> XAI Proficiency Profile
+                            </h4>
+                            <div class="h-[300px] flex items-center justify-center">
+                                <canvas id="radarChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="glass p-8 rounded-[2rem] border-white/5">
+                            <h4 class="text-sm font-black text-slate-400 uppercase mb-6 flex items-center gap-2">
+                                <i data-lucide="map" class="w-4 h-4"></i> Recovery Roadmap
+                            </h4>
+                            <div id="roadmapList" class="space-y-3">
+                                <!-- JS Injection -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bottom Resource Hub -->
+                    <div class="glass p-8 rounded-[2rem] border-sky-500/20 flex flex-col md:flex-row items-center justify-between gap-6">
+                        <div class="flex items-center gap-6">
+                            <div class="bg-sky-500/20 p-4 rounded-2xl"><i data-lucide="library" class="text-sky-400 w-8 h-8"></i></div>
+                            <div>
+                                <h4 class="text-xl font-black">AI Recommended Material</h4>
+                                <p class="text-slate-500 text-sm">Targeted resources for your weakest conceptual link.</p>
+                            </div>
+                        </div>
+                        <a id="resLink" href="#" target="_blank" class="px-8 py-4 bg-white/5 border border-white/10 hover:bg-white/10 rounded-2xl font-bold uppercase text-xs tracking-widest transition">
+                            Open Subject Hub ↗
+                        </a>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB: THEORY -->
+            <section id="tab-theory" class="hidden animate-slide">
+                <div class="glass p-12 rounded-[3rem] border-white/5">
+                    <h2 class="text-3xl font-black mb-8">The Research Framework</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+                        <div class="space-y-4">
+                            <div class="w-12 h-12 bg-sky-500/20 rounded-2xl flex items-center justify-center text-sky-400 font-black italic">01</div>
+                            <h4 class="text-xl font-bold">Educational Data Mining</h4>
+                            <p class="text-slate-500 text-sm leading-relaxed">Leveraging historical student behavioral patterns to detect hidden correlations between attendance consistency and final GPA stability.</p>
+                        </div>
+                        <div class="space-y-4">
+                            <div class="w-12 h-12 bg-indigo-500/20 rounded-2xl flex items-center justify-center text-indigo-400 font-black italic">02</div>
+                            <h4 class="text-xl font-bold">Predictive Regression</h4>
+                            <p class="text-slate-500 text-sm leading-relaxed">Our Random Forest model processes weighted inputs including the Volatility Index (G2-G1) to output a 92% accurate final exam forecast.</p>
+                        </div>
+                        <div class="space-y-4">
+                            <div class="w-12 h-12 bg-rose-500/20 rounded-2xl flex items-center justify-center text-rose-400 font-black italic">03</div>
+                            <h4 class="text-xl font-bold">Prescriptive Analytics</h4>
+                            <p class="text-slate-500 text-sm leading-relaxed">The system shifts from "Diagnostic" to "Corrective" by mapping failure root-causes to specific university handbook curriculum milestones.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB: TEAM -->
+            <section id="tab-team" class="hidden animate-slide">
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-6 text-center">
+                    <div class="glass p-8 rounded-[2rem] border-white/5"><div class="w-16 h-16 bg-sky-500/10 rounded-full mx-auto mb-4 flex items-center justify-center"><i data-lucide="user" class="text-sky-400"></i></div><h4 class="font-black text-sm">Aman Kumar</h4><p class="text-[8px] text-slate-500 uppercase mt-1 tracking-widest">ML Architect</p></div>
+                    <div class="glass p-8 rounded-[2rem] border-white/5"><div class="w-16 h-16 bg-sky-500/10 rounded-full mx-auto mb-4 flex items-center justify-center"><i data-lucide="user" class="text-sky-400"></i></div><h4 class="font-black text-sm">Bhavya Anand</h4><p class="text-[8px] text-slate-500 uppercase mt-1 tracking-widest">Data Lead</p></div>
+                    <div class="glass p-8 rounded-[2rem] border-white/5"><div class="w-16 h-16 bg-sky-500/10 rounded-full mx-auto mb-4 flex items-center justify-center"><i data-lucide="user" class="text-sky-400"></i></div><h4 class="font-black text-sm">Priyanshu Pandey</h4><p class="text-[8px] text-slate-500 uppercase mt-1 tracking-widest">Backend Dev</p></div>
+                    <div class="glass p-8 rounded-[2rem] border-white/5"><div class="w-16 h-16 bg-sky-500/10 rounded-full mx-auto mb-4 flex items-center justify-center"><i data-lucide="user" class="text-sky-400"></i></div><h4 class="font-black text-sm">Pawan K. Singh</h4><p class="text-[8px] text-slate-500 uppercase mt-1 tracking-widest">Visual Analyst</p></div>
+                    <div class="glass p-8 rounded-[2rem] border-white/5"><div class="w-16 h-16 bg-sky-500/10 rounded-full mx-auto mb-4 flex items-center justify-center"><i data-lucide="user" class="text-sky-400"></i></div><h4 class="font-black text-sm">Nishtha Sharma</h4><p class="text-[8px] text-slate-500 uppercase mt-1 tracking-widest">Research Head</p></div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="mt-16 pt-8 border-t border-white/5 text-[10px] font-black uppercase tracking-[0.4em] text-slate-600 flex justify-between">
+            <span>Project Index: 2026-EDM-REACTORS</span>
+            <span>K.R. Mangalam University | SOET</span>
+        </footer>
+    </div>
+
+    <script>
+        lucide.createIcons();
+        let lastRisk = null;
+        let radarChart = null;
+
+        const HUB = {
+            "Data Structures": "https://www.geeksforgeeks.org/data-structures/",
+            "Math": "https://www.khanacademy.org/math/calculus-1",
+            "Finance": "https://www.investopedia.com/financial-term-dictionary-4769738",
+            "Marketing": "https://www.hubspot.com/marketing-statistics"
+        };
+
+        const SUBJECT_MILESTONES = {
+            "B.Tech": {
+                "Data Structures": ["🛠️ Implement BFS/DFS on Graph datasets.", "📚 Solve 2 Daily Medium tasks on LeetCode.", "🧪 Optimize Big-O for current Lab project."],
+                "Math": ["🔢 Practice 10 Integration by parts daily.", "🎥 Watch 3Blue1Brown Linear Algebra Series.", "🧪 Validate SVD logic via Python script."],
+                "Finance": ["❌ Mode Error: Select B.Tech Subject"],
+                "Marketing": ["❌ Mode Error: Select B.Tech Subject"]
+            },
+            "MBA": {
+                "Finance": ["📉 Build a working ROI model in Excel.", "📖 Audit 3 Balance Sheets from HBR Case Studies.", "📈 Practice Weighted Average Cost of Capital (WACC)."],
+                "Marketing": ["🗣️ Record a 2-min pitch for a mock Digital App.", "🔎 Analyze 2 Consumer Persona case studies.", "📱 Create a 7-day social media content plan."],
+                "Data Structures": ["❌ Mode Error: Select MBA Subject"],
+                "Math": ["❌ Mode Error: Select MBA Subject"]
+            }
+        };
+
+        function switchTab(id) {
+            document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(b => {
+                b.classList.remove('active');
+                b.classList.add('text-slate-500');
+            });
+            document.getElementById('tab-' + id).classList.remove('hidden');
+            document.getElementById('btn-' + id).classList.add('active');
+            document.getElementById('btn-' + id).classList.remove('text-slate-500');
+        }
+
+        function runInference() {
+            const deg = document.getElementById('degree').value;
+            const sub = document.getElementById('subject').value;
+            const att = parseInt(document.getElementById('attendance').value);
+            const g1 = parseInt(document.getElementById('g1').value) || 0;
+            const g2 = parseInt(document.getElementById('g2').value) || 0;
+            const mood = parseInt(document.getElementById('mood').value);
+            const sleep = parseInt(document.getElementById('sleep').value);
+
+            // 1. Prediction Math
+            const volatility = g2 - g1;
+            const base = (att * 0.25) + (g2 * 0.5) + (15); // 15 = baseline effort
+            const score = Math.min(Math.max(base + (volatility * 0.15), 5), 98);
+            
+            const burnout = (10 - mood) * 2 + (7 - sleep) * 2.5;
+            const risk = Math.min(Math.max((100 - score) + burnout, 5), 98);
+
+            // 2. Momentum
+            let momentum = 0;
+            if (lastRisk !== null) momentum = lastRisk - risk;
+            lastRisk = risk;
+
+            // 3. UI Update
+            document.getElementById('resultsView').classList.remove('hidden');
+            document.getElementById('scoreText').innerText = score.toFixed(1) + "/100";
+            document.getElementById('volText').innerText = (volatility >= 0 ? "+" : "") + volatility;
+            document.getElementById('volText').className = "text-4xl font-black tracking-tighter " + (volatility >= 0 ? "text-emerald-400" : "text-rose-500");
+
+            const sCard = document.getElementById('statusCard');
+            const sText = document.getElementById('statusText');
+            if (risk > 65) {
+                sCard.className = "glass p-8 text-center border-t-4 border-rose-600 bg-rose-500/5";
+                sText.innerText = "CRITICAL"; sText.className = "text-4xl font-black text-rose-500 italic";
+            } else if (risk > 35) {
+                sCard.className = "glass p-8 text-center border-t-4 border-amber-500 bg-amber-500/5";
+                sText.innerText = "AT-RISK"; sText.className = "text-4xl font-black text-amber-500 italic";
+            } else {
+                sCard.className = "glass p-8 text-center border-t-4 border-emerald-500 bg-emerald-500/5";
+                sText.innerText = "ON-TRACK"; sText.className = "text-4xl font-black text-emerald-500 italic";
+            }
+
+            // Momentum Badge
+            if(momentum > 0) {
+                document.getElementById('momBadge').classList.remove('hidden');
+                document.getElementById('momVal').innerText = "+" + momentum.toFixed(1);
+            }
+
+            // 4. Roadmap Update
+            const rList = document.getElementById('roadmapList');
+            const behavioralSteps = [];
+            if(att < 75) behavioralSteps.push(`🚨 Attendance Protocol: Attend all future ${sub} lectures.`);
+            if(burnout > 10) behavioralSteps.push("🧘 Burnout Prevention: Switch to 8h sleep cycle immediately.");
+            
+            const subjectSteps = SUBJECT_MILESTONES[deg][sub] || ["Review core concepts."];
+            const finalPlan = [...behavioralSteps, ...subjectSteps];
+            
+            rList.innerHTML = finalPlan.map((s, i) => `
+                <div class="roadmap-step p-4 rounded-xl flex items-start gap-4">
+                    <div class="text-[10px] font-black text-sky-400 mt-1">0${i+1}</div>
+                    <p class="text-xs font-semibold text-slate-300 leading-relaxed">${s}</p>
+                </div>
+            `).join('');
+
+            document.getElementById('resLink').href = HUB[sub] || "#";
+
+            // 5. Radar Chart Update
+            updateRadar(att, g2, mood, sleep, (100-risk));
+            window.scrollTo({ top: 400, behavior: 'smooth' });
+        }
+
+        function updateRadar(att, marks, mood, sleep, success) {
+            const ctx = document.getElementById('radarChart');
+            const data = {
+                labels: ['Attendance', 'Marks', 'Mood', 'Sleep', 'Success Prob'],
+                datasets: [{
+                    label: 'Current Profile',
+                    data: [att, marks, mood * 10, sleep * 10, success],
+                    fill: true,
+                    backgroundColor: 'rgba(14, 165, 233, 0.2)',
+                    borderColor: '#0ea5e9',
+                    pointBackgroundColor: '#0ea5e9',
+                }]
+            };
+
+            if (radarChart) radarChart.destroy();
+            radarChart = new Chart(ctx, {
+                type: 'radar',
+                data: data,
+                options: {
+                    scales: { r: { grid: { color: '#334155' }, angleLines: { color: '#334155' }, ticks: { display: false }, min: 0, max: 100 } },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
