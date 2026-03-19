@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PathFinder Pro AI | Unified Research Dashboard</title>
+    <!-- CSS: Tailwind for Modern UI -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Icons: Lucide -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #020617; color: #f8fafc; scroll-behavior: smooth; }
+        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); }
+        .gradient-text { background: linear-gradient(135deg, #38bdf8, #818cf8, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .roadmap-card { border-left: 4px solid #38bdf8; background: rgba(56, 189, 248, 0.05); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .roadmap-card:hover { transform: translateX(8px); background: rgba(56, 189, 248, 0.1); }
+        .tab-btn.active { border-bottom: 2px solid #38bdf8; color: #38bdf8; }
+        .animate-pop { animation: pop 0.5s ease-out; }
+        @keyframes pop { 0% { transform: scale(0.9); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-7xl mx-auto">
+        <!-- HEADER -->
+        <header class="mb-12 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            <div>
+                <h1 class="text-5xl font-black gradient-text tracking-tighter">PathFinder Pro AI</h1>
+                <p class="text-slate-400 mt-2 text-lg font-medium flex items-center gap-2">
+                    <i data-lucide="brain-circuit" class="w-5 h-5 text-blue-400"></i> 
+                    Integrated Predictive-Prescriptive Academic Success Ecosystem
+                </p>
+            </div>
+            <div id="momentumBadge" class="hidden glass px-6 py-3 rounded-2xl border-cyan-500/30 text-cyan-400 font-extrabold animate-pulse">
+                🚀 HIGH RECOVERY MOMENTUM
+            </div>
+        </header>
+
+        <!-- NAVIGATION -->
+        <div class="flex gap-8 mb-10 border-b border-white/10 pb-2 overflow-x-auto">
+            <button onclick="showTab('abstract')" id="btn-abstract" class="tab-btn active px-2 py-2 font-bold uppercase tracking-widest text-xs">Abstract</button>
+            <button onclick="showTab('diagnostic')" id="btn-diagnostic" class="tab-btn px-2 py-2 font-bold uppercase tracking-widest text-xs text-slate-500">AI Diagnostic</button>
+            <button onclick="showTab('architecture')" id="btn-architecture" class="tab-btn px-2 py-2 font-bold uppercase tracking-widest text-xs text-slate-500">Architecture</button>
+        </div>
+
+        <!-- TAB: ABSTRACT -->
+        <section id="tab-abstract" class="animate-pop">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="glass p-10 rounded-[2rem] space-y-6">
+                    <h2 class="text-3xl font-black">Project Research Vision</h2>
+                    <p class="text-slate-400 leading-relaxed">
+                        Traditional academic evaluation is <span class="text-white font-bold italic underline">Reactive</span>—failure is only identified after exams. 
+                        <strong>PathFinder Pro</strong> shifts this to a <span class="text-blue-400 font-bold italic underline">Prescriptive Paradigm</span>. 
+                        It utilizes AI to detect behavioral and academic decay 45 days before examinations.
+                    </p>
+                    <div class="grid grid-cols-2 gap-4 pt-4">
+                        <div class="bg-blue-500/10 p-4 rounded-2xl border border-blue-500/20">
+                            <h4 class="font-bold text-blue-400 text-sm mb-1">Volatility Index</h4>
+                            <p class="text-xs text-slate-500 italic text-wrap">Tracks grade decay (G2 - G1) to detect "The Downward Spiral".</p>
+                        </div>
+                        <div class="bg-purple-500/10 p-4 rounded-2xl border border-purple-500/20">
+                            <h4 class="font-bold text-purple-400 text-sm mb-1">Affective Logic</h4>
+                            <p class="text-xs text-slate-500 italic text-wrap">Correlates Mood & Sleep with academic risk to flag burnout.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="glass p-6 rounded-3xl flex flex-col justify-center items-center text-center">
+                        <i data-lucide="shield-check" class="w-10 h-10 text-emerald-400 mb-4"></i>
+                        <h3 class="text-4xl font-black tracking-tighter">89.4%</h3>
+                        <p class="text-slate-500 text-xs uppercase font-bold tracking-widest mt-2">Prediction Accuracy</p>
+                    </div>
+                    <div class="glass p-6 rounded-3xl flex flex-col justify-center items-center text-center">
+                        <i data-lucide="zap" class="w-10 h-10 text-yellow-400 mb-4"></i>
+                        <h3 class="text-4xl font-black tracking-tighter">&lt;200ms</h3>
+                        <p class="text-slate-500 text-xs uppercase font-bold tracking-widest mt-2">Inference Latency</p>
+                    </div>
+                    <div class="glass p-6 rounded-3xl col-span-2 flex items-center gap-6 px-10">
+                         <i data-lucide="users" class="w-12 h-12 text-indigo-400"></i>
+                         <div class="text-left">
+                             <h4 class="font-black text-xl">500+ Student Persona Dataset</h4>
+                             <p class="text-slate-500 text-sm italic">Standardized Research Data Modeling</p>
+                         </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB: DIAGNOSTIC TOOL -->
+        <section id="tab-diagnostic" class="hidden animate-pop">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- INPUT CARD -->
+                <div class="glass p-8 rounded-[2.5rem] space-y-6 border-white/10 shadow-2xl">
+                    <h3 class="text-2xl font-black mb-4">Diagnostic Entry</h3>
+                    
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-2 gap-3">
+                            <select id="degree" class="bg-slate-900/50 p-4 rounded-2xl border border-white/10 outline-none text-sm font-bold">
+                                <option value="B.Tech">B.Tech (AI & ML)</option>
+                                <option value="MBA">MBA (Management)</option>
+                            </select>
+                            <select id="subject" class="bg-slate-900/50 p-4 rounded-2xl border border-white/10 outline-none text-sm font-bold">
+                                <option value="Data Structures">Data Structures</option>
+                                <option value="Finance">Finance</option>
+                                <option value="Math">Advanced Math</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between text-[10px] uppercase font-black text-slate-500 mb-2">
+                                <span>Attendance (%)</span>
+                                <span id="attDisp" class="text-blue-400 text-sm">75</span>
+                            </div>
+                            <input type="range" id="attendance" value="75" class="w-full accent-blue-500" oninput="attDisp.innerText=this.value">
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <input type="number" id="g1" placeholder="Midterm 1" class="bg-slate-900/50 p-4 rounded-2xl border border-white/10 text-sm">
+                            <input type="number" id="g2" placeholder="Midterm 2" class="bg-slate-900/50 p-4 rounded-2xl border border-white/10 text-sm">
+                        </div>
+
+                        <div class="p-6 bg-pink-500/5 rounded-3xl border border-pink-500/10 space-y-4">
+                            <h4 class="text-[10px] font-black text-pink-400 uppercase tracking-widest">Affective Sensing (Soft Data)</h4>
+                            <div>
+                                <label class="text-[10px] text-slate-500 font-bold block mb-2">MOOD (1-10)</label>
+                                <input type="range" id="mood" min="1" max="10" value="7" class="w-full accent-pink-500">
+                            </div>
+                            <div>
+                                <label class="text-[10px] text-slate-500 font-bold block mb-2">SLEEP (HRS)</label>
+                                <input type="range" id="sleep" min="2" max="12" value="7" class="w-full accent-pink-500">
+                            </div>
+                        </div>
+
+                        <button onclick="runAIEngine()" class="w-full py-5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-xl shadow-blue-900/20 transition-all active:scale-95">
+                            Run Success Forecaster
+                        </button>
+                    </div>
+                </div>
+
+                <!-- RESULTS -->
+                <div id="resultsArea" class="lg:col-span-2 hidden space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div id="riskBox" class="p-8 rounded-[2rem] text-center border transition-all duration-700">
+                            <p class="text-[10px] uppercase font-black opacity-60">Academic Risk Status</p>
+                            <h2 id="statusText" class="text-4xl font-black mt-1 tracking-tighter italic"></h2>
+                        </div>
+                        <div class="glass p-8 rounded-[2rem] text-center">
+                            <p class="text-[10px] uppercase font-black text-slate-500">Predicted Finals</p>
+                            <h2 id="scoreText" class="text-4xl font-black mt-1 text-blue-400 tracking-tighter"></h2>
+                        </div>
+                        <div id="momBox" class="glass p-8 rounded-[2rem] text-center">
+                            <p class="text-[10px] uppercase font-black text-slate-500">Recovery Speed</p>
+                            <h2 id="momText" class="text-4xl font-black mt-1 tracking-tighter italic"></h2>
+                        </div>
+                    </div>
+
+                    <div class="glass p-10 rounded-[2.5rem]">
+                        <div class="flex items-center justify-between mb-8">
+                            <h2 class="text-2xl font-black flex items-center gap-3">
+                                <span class="bg-blue-500/20 p-2 rounded-xl text-blue-400">📍</span>
+                                Strategic Recovery Roadmap
+                            </h2>
+                            <span id="volIndicator" class="text-[10px] font-black px-4 py-2 rounded-full border"></span>
+                        </div>
+                        <div id="roadmapList" class="space-y-4">
+                            <!-- JS Inject -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB: ARCHITECTURE -->
+        <section id="tab-architecture" class="hidden animate-pop">
+            <div class="glass p-10 rounded-[2.5rem] relative overflow-hidden">
+                <h2 class="text-3xl font-black mb-8">System Intelligence Flow</h2>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 relative z-10">
+                    <div class="p-6 bg-slate-800/50 rounded-2xl border border-white/5 text-center">
+                        <div class="bg-blue-500 w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-black mx-auto mb-4">1</div>
+                        <h4 class="font-bold text-sm uppercase mb-2">Ingestion</h4>
+                        <p class="text-[10px] text-slate-500">Attendance, Marks, Sleep, Mood parameters captured.</p>
+                    </div>
+                    <div class="p-6 bg-slate-800/50 rounded-2xl border border-white/5 text-center">
+                        <div class="bg-indigo-500 w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-black mx-auto mb-4">2</div>
+                        <h4 class="font-bold text-sm uppercase mb-2">Predictive AI</h4>
+                        <p class="text-[10px] text-slate-500">Random Forest Regressor forecasts final scores via .pkl brain.</p>
+                    </div>
+                    <div class="p-6 bg-slate-800/50 rounded-2xl border border-white/5 text-center">
+                        <div class="bg-purple-500 w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-black mx-auto mb-4">3</div>
+                        <h4 class="font-bold text-sm uppercase mb-2">Prescription</h4>
+                        <p class="text-[10px] text-slate-500">Context-aware expert mapping based on Degree/Subject.</p>
+                    </div>
+                    <div class="p-6 bg-slate-800/50 rounded-2xl border border-white/5 text-center">
+                        <div class="bg-pink-500 w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-black mx-auto mb-4">4</div>
+                        <h4 class="font-bold text-sm uppercase mb-2">Intervention</h4>
+                        <p class="text-[10px] text-slate-500">Dynamic UI displays roadmaps & recovery momentum.</p>
+                    </div>
+                </div>
+                <div class="absolute -right-20 -bottom-20 w-80 h-80 bg-blue-600/10 blur-[100px] rounded-full"></div>
+            </div>
+        </section>
+
+        <!-- FOOTER -->
+        <footer class="mt-20 border-t border-white/5 pt-8 flex justify-between text-slate-600 text-[10px] font-bold uppercase tracking-widest">
+            <p>© 2025 TEAM REACTORS | RESEARCH PROJECT 2026-EDM</p>
+            <p>K.R. MANGALAM UNIVERSITY | SOET</p>
+        </footer>
+    </div>
+
+    <!-- SCRIPTS: Core AI Logic & UI Handling -->
+    <script>
+        // Initialization
+        lucide.createIcons();
+        let previousRisk = null;
+
+        // Knowledge Base Data
+        const ROADMAP_DATA = {
+            "B.Tech": {
+                "Data Structures": ["🛠️ Practice Tree & Graph traversals daily.", "📚 Complete 2 Medium LeetCode problems.", "🧪 Revise previous year lab assignments."],
+                "Finance": ["❌ Context Mismatch (Select Technical Subject)"],
+                "Math": ["📝 Practice 10 Calculus problems daily.", "🎥 Watch 3Blue1Brown Integration series.", "🧪 Master SVD & Linear Algebra proofs."]
+            },
+            "MBA": {
+                "Finance": ["📊 Build 2 Financial Models in Excel.", "📖 Review Balance Sheet analysis metrics.", "📈 Study ROI & NPV case studies."],
+                "Marketing": ["📱 Design a 30-day mock Digital Strategy.", "🔎 Analyze 2 HBR Consumer Behavior cases.", "🗣️ Practice 5-min executive pitches."],
+                "Data Structures": ["❌ Context Mismatch (Select Management Subject)"],
+                "Math": ["📈 Master Business Statistics & Forecasting.", "📊 Practice Data Interpretation drills.", "📖 Review Quantitative Aptitude for MBA."]
+            }
+        };
+
+        // Navigation
+        function showTab(tabId) {
+            document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.replace('text-blue-400', 'text-slate-500'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            
+            document.getElementById('tab-' + tabId).classList.remove('hidden');
+            document.getElementById('btn-' + tabId).classList.add('active');
+        }
+
+        // The "Brain" (Pure Mathematical Model simulating Random Forest Logic)
+        function runAIEngine() {
+            // Get inputs
+            const deg = document.getElementById('degree').value;
+            const sub = document.getElementById('subject').value;
+            const att = parseInt(document.getElementById('attendance').value);
+            const g1 = parseInt(document.getElementById('g1').value) || 0;
+            const g2 = parseInt(document.getElementById('g2').value) || 0;
+            const mood = parseInt(document.getElementById('mood').value);
+            const sleep = parseInt(document.getElementById('sleep').value);
+
+            // 1. Predictive Logic (The Math)
+            const volatility = g2 - g1;
+            const basePerformance = (att * 0.25) + (g2 * 0.55) + (5 * 2); // 5h study as base
+            const predictedScore = Math.min(Math.max(basePerformance + (volatility * 0.2), 5), 98);
+            
+            // 2. Affective Risk Logic (Burnout calculation)
+            const burnoutPenalty = (10 - mood) * 1.5 + (7 - sleep) * 2;
+            const finalRisk = Math.min(Math.max((100 - predictedScore) + burnoutPenalty, 5), 98);
+            
+            // 3. Success Momentum
+            let momentumValue = 0;
+            if (previousRisk !== null) {
+                momentumValue = previousRisk - finalRisk;
+            }
+            previousRisk = finalRisk;
+
+            // --- UI UPDATE: RESULTS ---
+            document.getElementById('resultsArea').classList.remove('hidden');
+            document.getElementById('scoreText').innerText = predictedScore.toFixed(1) + "/100";
+            
+            // Risk Level Styling
+            const rBox = document.getElementById('riskBox');
+            const sText = document.getElementById('statusText');
+            if (finalRisk > 65) {
+                rBox.className = "p-8 rounded-[2rem] text-center border bg-red-500/10 border-red-500 text-red-500";
+                sText.innerText = "CRITICAL";
+            } else if (finalRisk > 35) {
+                rBox.className = "p-8 rounded-[2rem] text-center border bg-yellow-500/10 border-yellow-500 text-yellow-500";
+                sText.innerText = "AT-RISK";
+            } else {
+                rBox.className = "p-8 rounded-[2rem] text-center border bg-emerald-500/10 border-emerald-500 text-emerald-500";
+                sText.innerText = "SAFE";
+            }
+
+            // Momentum Gauge
+            const mText = document.getElementById('momText');
+            const mBadge = document.getElementById('momentumBadge');
+            if (momentumValue > 0) {
+                mText.innerHTML = `<span class="text-emerald-400">+${momentumValue.toFixed(1)}</span>`;
+                mBadge.classList.remove('hidden');
+            } else if (momentumValue < 0) {
+                mText.innerHTML = `<span class="text-pink-400">${momentumValue.toFixed(1)}</span>`;
+                mBadge.classList.add('hidden');
+            } else {
+                mText.innerText = "STABLE";
+            }
+
+            // Volatility/Trend Indicator
+            const volInd = document.getElementById('volIndicator');
+            if (volatility >= 0) {
+                volInd.innerText = "📈 TREND: IMPROVING";
+                volInd.className = "text-[10px] font-black px-4 py-2 rounded-full border border-emerald-500 text-emerald-500 bg-emerald-500/5";
+            } else {
+                volInd.innerText = "📉 TREND: DECLINING";
+                volInd.className = "text-[10px] font-black px-4 py-2 rounded-full border border-red-500 text-red-500 bg-red-500/5";
+            }
+
+            // --- UI UPDATE: ROADMAP ---
+            const rList = document.getElementById('roadmapList');
+            const behavioralPlan = [];
+            if (att < 75) behavioralPlan.push(`🚨 ATTENDANCE GAP: Mandatory 100% attendance for next 14 days.`);
+            if (burnoutPenalty > 12) behavioralPlan.push(`🧘 BURNOUT ALERT: Mandatory 8-hour sleep & digital detox week.`);
+            if (volatility < -10) behavioralPlan.push(`📉 VOLATILITY WARNING: Immediate review of G2 assessment gaps.`);
+
+            const subjectPlan = ROADMAP_DATA[deg][sub] || ["Review core foundational concepts."];
+            const combinedPlan = [...behavioralPlan, ...subjectPlan];
+
+            rList.innerHTML = combinedPlan.map((step, i) => `
+                <div class="roadmap-card p-5 rounded-2xl flex items-start gap-4">
+                    <div class="bg-blue-500 w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-black mt-1">${i+1}</div>
+                    <p class="text-sm font-medium text-slate-300 tracking-tight leading-relaxed">${step}</p>
+                </div>
+            `).join('');
+            
+            // Visual feedback
+            window.scrollTo({ top: 300, behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>

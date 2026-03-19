@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PathFinder AI | Student Success</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: #0f172a; color: white; font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+    </style>
+</head>
+<body class="p-10">
+    <div class="max-w-6xl mx-auto">
+        <h1 class="text-4xl font-bold text-blue-400 mb-2">🚀 PathFinder AI</h1>
+        <p class="text-gray-400 mb-10">Research-Based Early Warning & Prescriptive Recovery System</p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+            <!-- INPUT SECTION -->
+            <div class="glass p-8 rounded-2xl">
+                <h2 class="text-xl font-semibold mb-6">Student Diagnostic Input</h2>
+                
+                <div class="space-y-4">
+                    <select id="degree" class="w-full bg-slate-800 p-3 rounded-lg border border-slate-700">
+                        <option value="B.Tech">B.Tech (Engineering)</option>
+                        <option value="MBA">MBA (Management)</option>
+                    </select>
+
+                    <select id="subject" class="w-full bg-slate-800 p-3 rounded-lg border border-slate-700">
+                        <option value="Data Structures">Data Structures / Finance</option>
+                        <option value="Calculus">Calculus / Marketing</option>
+                    </select>
+
+                    <div>
+                        <label class="block text-sm mb-2">Attendance: <span id="attVal">50</span>%</label>
+                        <input type="range" id="attendance" class="w-full" oninput="attVal.innerText=this.value">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm mb-2">Study Hours: <span id="hrsVal">5</span>h/week</label>
+                        <input type="range" id="study" max="20" class="w-full" oninput="hrsVal.innerText=this.value">
+                    </div>
+
+                    <div class="flex gap-4">
+                        <input type="number" id="g1" placeholder="Midterm 1" class="w-1/2 bg-slate-800 p-3 rounded-lg">
+                        <input type="number" id="g2" placeholder="Midterm 2" class="w-1/2 bg-slate-800 p-3 rounded-lg">
+                    </div>
+
+                    <button onclick="analyze()" class="w-full bg-blue-600 hover:bg-blue-700 p-3 rounded-lg font-bold transition">Run AI Diagnostic</button>
+                </div>
+            </div>
+
+            <!-- RESULT SECTION -->
+            <div id="results" class="hidden space-y-6">
+                <div id="statusBox" class="p-6 rounded-2xl text-center font-bold text-2xl">
+                    STATUS: <span id="statusText"></span>
+                </div>
+
+                <div class="glass p-6 rounded-2xl">
+                    <h3 class="text-blue-400 font-bold mb-4">📍 Personalized Recovery Roadmap</h3>
+                    <ul id="roadmapList" class="space-y-3 list-disc list-inside text-gray-300"></ul>
+                </div>
+
+                <div class="glass p-6 rounded-2xl flex justify-between">
+                    <div>
+                        <p class="text-gray-400 text-sm">Predicted Score</p>
+                        <p id="predScore" class="text-3xl font-bold"></p>
+                    </div>
+                    <div>
+                        <p class="text-gray-400 text-sm">Failure Risk</p>
+                        <p id="riskScore" class="text-3xl font-bold text-red-500"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function analyze() {
+            const payload = {
+                degree: document.getElementById('degree').value,
+                subject: document.getElementById('subject').value,
+                attendance: document.getElementById('attendance').value,
+                study: document.getElementById('study').value,
+                g1: document.getElementById('g1').value || 0,
+                g2: document.getElementById('g2').value || 0
+            };
+
+            const response = await fetch('/predict', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(payload)
+            });
+
+            const result = await response.json();
+            
+            // UI Updates
+            document.getElementById('results').classList.remove('hidden');
+            document.getElementById('statusText').innerText = result.status;
+            document.getElementById('predScore').innerText = result.prediction + "/100";
+            document.getElementById('riskScore').innerText = result.risk + "%";
+
+            // Status Colors
+            const sBox = document.getElementById('statusBox');
+            sBox.className = `p-6 rounded-2xl text-center font-bold text-2xl ${result.status === 'RED' ? 'bg-red-900/50 text-red-400' : result.status === 'YELLOW' ? 'bg-yellow-900/50 text-yellow-400' : 'bg-green-900/50 text-green-400'}`;
+
+            // Roadmap Update
+            const list = document.getElementById('roadmapList');
+            list.innerHTML = result.roadmap.map(step => `<li>${step}</li>`).join('');
+        }
+    </script>
+</body>
+</html>

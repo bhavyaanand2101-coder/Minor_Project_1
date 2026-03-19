@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PathFinder AI | Success Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: #020617; color: #f8fafc; font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
+        .roadmap-card { border-left: 4px solid #38bdf8; background: rgba(56, 189, 248, 0.05); transition: 0.3s; }
+        .roadmap-card:hover { transform: translateX(10px); background: rgba(56, 189, 248, 0.1); }
+    </style>
+</head>
+<body class="p-6">
+    <div class="max-w-7xl mx-auto">
+        <header class="mb-8 flex justify-between items-center">
+            <div>
+                <h1 class="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">PathFinder Pro AI</h1>
+                <p class="text-slate-400">Student Recovery & Performance Ecosystem</p>
+            </div>
+            <div id="momentumBadge" class="hidden glass px-4 py-2 rounded-full text-cyan-400 font-bold border-cyan-500/30"></div>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- INPUTS -->
+            <div class="glass p-6 rounded-3xl h-fit">
+                <h3 class="text-xl font-bold mb-6 flex items-center gap-2">📥 Diagnostic Entry</h3>
+                <div class="space-y-4">
+                    <select id="degree" class="w-full bg-slate-900 p-3 rounded-xl border border-slate-700 outline-none">
+                        <option value="B.Tech">B.Tech (Engineering)</option>
+                        <option value="MBA">MBA (Management)</option>
+                    </select>
+                    <select id="subject" class="w-full bg-slate-900 p-3 rounded-xl border border-slate-700 outline-none">
+                        <option value="Data Structures">Major: Data Structures / Finance</option>
+                        <option value="Calculus">Major: Calculus / Marketing</option>
+                    </select>
+                    <div>
+                        <label class="text-xs text-slate-500">Attendance: <span id="attV">50</span>%</label>
+                        <input type="range" id="attendance" class="w-full accent-blue-500" oninput="attV.innerText=this.value">
+                    </div>
+                    <div>
+                        <label class="text-xs text-slate-500">Study Hours: <span id="hrsV">5</span>h/day</label>
+                        <input type="range" id="study" max="15" class="w-full accent-blue-500" oninput="hrsV.innerText=this.value">
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <input type="number" id="g1" placeholder="Midterm 1" class="bg-slate-900 p-3 rounded-xl border border-slate-700">
+                        <input type="number" id="g2" placeholder="Midterm 2" class="bg-slate-900 p-3 rounded-xl border border-slate-700">
+                    </div>
+                    <div class="p-3 bg-slate-900/50 rounded-xl">
+                        <p class="text-[10px] text-pink-400 uppercase font-bold mb-2">Wellbeing Check</p>
+                        <input type="range" id="mood" min="1" max="10" title="Mood" class="w-full accent-pink-500 mb-2">
+                        <input type="range" id="sleep" min="2" max="12" title="Sleep" class="w-full accent-pink-500">
+                    </div>
+                    <button onclick="runDiagnostic()" class="w-full py-4 bg-blue-600 hover:bg-blue-500 rounded-2xl font-black uppercase tracking-widest transition-all">Analyze Success Path</button>
+                </div>
+            </div>
+
+            <!-- RESULTS & ROADMAP (CENTRAL FOCUS) -->
+            <div id="resultsArea" class="lg:col-span-2 hidden space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div id="riskBox" class="p-6 rounded-3xl text-center">
+                        <p class="text-xs opacity-70 uppercase">Risk Level</p>
+                        <h2 id="statusText" class="text-3xl font-black mt-1"></h2>
+                    </div>
+                    <div class="glass p-6 rounded-3xl text-center">
+                        <p class="text-xs text-slate-500 uppercase">Predicted Score</p>
+                        <h2 id="scoreText" class="text-3xl font-black text-blue-400 mt-1"></h2>
+                    </div>
+                    <div class="glass p-6 rounded-3xl text-center">
+                        <p class="text-xs text-slate-500 uppercase">Recovery Speed</p>
+                        <h2 id="momText" class="text-3xl font-black mt-1"></h2>
+                    </div>
+                </div>
+
+                <div class="glass p-8 rounded-3xl">
+                    <h2 class="text-2xl font-bold mb-6 flex items-center gap-3">
+                        <span class="p-2 bg-blue-500/20 rounded-lg">📍</span> 
+                        Personalized Recovery Roadmap
+                    </h2>
+                    <div id="roadmapList" class="space-y-4">
+                        <!-- Roadmap cards injected here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let lastRisk = 50;
+
+        async function runDiagnostic() {
+            const data = {
+                degree: document.getElementById('degree').value,
+                subject: document.getElementById('subject').value,
+                attendance: document.getElementById('attendance').value,
+                study: document.getElementById('study').value,
+                g1: document.getElementById('g1').value || 0,
+                g2: document.getElementById('g2').value || 0,
+                mood: document.getElementById('mood').value,
+                sleep: document.getElementById('sleep').value,
+                prev_risk: lastRisk
+            };
+
+            const res = await fetch('/predict', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            });
+
+            const result = await res.json();
+            lastRisk = result.risk;
+
+            // UI Reveal
+            document.getElementById('resultsArea').classList.remove('hidden');
+            document.getElementById('statusText').innerText = result.status;
+            document.getElementById('scoreText').innerText = result.score + "/100";
+            
+            // Risk Color
+            const rBox = document.getElementById('riskBox');
+            if(result.status === 'CRITICAL') rBox.className = "p-6 rounded-3xl text-center bg-red-500/20 border border-red-500 text-red-400";
+            else if(result.status === 'AT-RISK') rBox.className = "p-6 rounded-3xl text-center bg-yellow-500/20 border border-yellow-500 text-yellow-400";
+            else rBox.className = "p-6 rounded-3xl text-center bg-emerald-500/20 border border-emerald-500 text-emerald-400";
+
+            // Momentum
+            const mBadge = document.getElementById('momentumBadge');
+            const mText = document.getElementById('momText');
+            mBadge.classList.remove('hidden');
+            mBadge.innerText = (result.momentum >= 0 ? "🚀 +" : "📉 ") + result.momentum + " Momentum";
+            mText.innerText = (result.momentum >= 0 ? "+" : "") + result.momentum;
+            mText.className = "text-3xl font-black mt-1 " + (result.momentum >= 0 ? "text-emerald-400" : "text-pink-400");
+
+            // Build Roadmap
+            const list = document.getElementById('roadmapList');
+            list.innerHTML = result.roadmap.map((step, index) => `
+                <div class="roadmap-card p-4 rounded-2xl flex items-start gap-4">
+                    <span class="bg-blue-500 text-white rounded-full h-6 w-6 flex items-center justify-center text-[10px] font-bold mt-1">
+                        ${index + 1}
+                    </span>
+                    <p class="text-slate-200">${step}</p>
+                </div>
+            `).join('');
+
+            if(result.burnout) alert("⚠️ AI Detected high stress levels. Recovery plan adjusted for mental health.");
+        }
+    </script>
+</body>
+</html>
