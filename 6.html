@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PathFinder AI | The Zenith Dashboard</title>
+    <!-- Premium Frameworks -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
+        
+        :root {
+            --primary: #0ea5e9;
+            --emerald: #10b981;
+            --rose: #f43f5e;
+            --bg: #030712;
+        }
+
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: #f1f5f9; overflow-x: hidden; }
+
+        /* NEURAL STARFIELD */
+        .starfield {
+            position: fixed; inset: 0; z-index: -1;
+            background: radial-gradient(circle at 50% 50%, #0f172a 0%, #030712 100%);
+        }
+        .star { position: absolute; background: white; border-radius: 50%; opacity: 0.3; animation: twinkle var(--d) infinite; }
+        @keyframes twinkle { 0%, 100% { opacity: 0.3; transform: scale(1); } 50% { opacity: 1; transform: scale(1.2); } }
+
+        /* GLASSMORPHISM 2.0 */
+        .glass { background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(25px); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 32px; }
+        .glass-card { background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 24px; transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .glass-card:hover { border-color: var(--primary); background: rgba(14, 165, 233, 0.08); transform: translateY(-8px) scale(1.01); box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
+
+        /* THE SUCCESS CORE ORB */
+        .core-orb {
+            width: 150px; height: 150px; border-radius: 50%;
+            filter: blur(40px); opacity: 0.5; transition: 1.5s;
+        }
+
+        .roadmap-item { border-left: 4px solid var(--primary); background: linear-gradient(90deg, rgba(14, 165, 233, 0.1) 0%, transparent 100%); position: relative; }
+        .roadmap-item::before { content: ''; position: absolute; left: -10px; top: 50%; width: 16px; height: 16px; background: var(--primary); border-radius: 50%; border: 4px solid var(--bg); transform: translateY(-50%); }
+
+        .gradient-text { background: linear-gradient(135deg, #38bdf8 0%, #818cf8 50%, #d946ef 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .btn-glow:hover { box-shadow: 0 0 20px rgba(14, 165, 233, 0.4); }
+
+        [x-cloak] { display: none !important; }
+    </style>
+</head>
+<body x-data="pathfinderApp()" x-init="init()">
+    <div class="starfield" id="starfield"></div>
+
+    <!-- STARTUP SCREEN -->
+    <template x-if="!user.name">
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-3xl px-6">
+            <div class="glass p-16 max-w-xl w-full text-center space-y-10 border-white/10 relative overflow-hidden">
+                <div class="absolute -top-24 -left-24 w-64 h-64 bg-sky-500/10 blur-[100px] rounded-full"></div>
+                <div class="w-24 h-24 bg-sky-500/20 rounded-[2.5rem] flex items-center justify-center mx-auto shadow-2xl">
+                    <i data-lucide="compass" class="w-12 h-12 text-sky-400"></i>
+                </div>
+                <div class="space-y-4">
+                    <h2 class="text-5xl font-black gradient-text tracking-tighter">PathFinder AI</h2>
+                    <p class="text-slate-400 font-medium tracking-wide">Enter the system to initialize academic forecasting.</p>
+                </div>
+                <div class="relative group">
+                    <input type="text" x-model="tempName" placeholder="Full Name" class="w-full bg-slate-900/50 border border-white/10 p-6 rounded-2xl outline-none focus:border-sky-500 transition-all text-center font-bold text-2xl text-white shadow-inner">
+                </div>
+                <button @click="saveUser()" class="w-full py-6 bg-sky-600 hover:bg-sky-500 rounded-2xl font-black uppercase tracking-[0.4em] transition-all transform active:scale-95 shadow-2xl shadow-sky-500/20 btn-glow">Initialize Lab</button>
+            </div>
+        </div>
+    </template>
+
+    <div class="max-w-[1650px] mx-auto py-8 px-4 lg:px-10" x-cloak x-show="user.name">
+        <!-- TOP HUD -->
+        <header class="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-8 mb-20">
+            <div class="flex items-center gap-8">
+                <div class="relative">
+                    <div id="statusOrb" class="core-orb absolute -inset-4" :style="`background: ${results ? results.riskColor : '#0ea5e9'}`"></div>
+                    <div class="relative glass p-6 rounded-[2rem] border-white/10 shadow-2xl">
+                        <i data-lucide="brain-circuit" class="w-12 h-12 text-sky-400"></i>
+                    </div>
+                </div>
+                <div>
+                    <h1 class="text-7xl font-black tracking-tighter italic leading-none mb-2">PATH<span class="text-sky-500">FINDER</span></h1>
+                    <div class="flex items-center gap-4">
+                        <span class="px-4 py-1 bg-white/5 border border-white/10 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-500">System Ready</span>
+                        <p class="text-slate-400 font-bold text-sm tracking-tight">Identity: <span x-text="user.name" class="text-sky-400 underline decoration-sky-500/30"></span></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-6">
+                <div x-show="results" class="glass px-10 py-6 border-white/5 flex items-center gap-8">
+                    <div class="p-3 bg-emerald-500/20 rounded-2xl animate-bounce"><i data-lucide="rocket" class="text-emerald-400 w-8 h-8"></i></div>
+                    <div>
+                        <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Recovery Momentum</p>
+                        <p x-text="momentum" class="text-emerald-400 font-black text-3xl tracking-tighter leading-none">0.0</p>
+                    </div>
+                </div>
+                <button @click="resetSession()" class="glass p-6 border-white/5 hover:text-rose-400 transition-all hover:scale-110 active:scale-90"><i data-lucide="log-out" class="w-8 h-8"></i></button>
+            </div>
+        </header>
+
+        <!-- MAIN GRID -->
+        <main class="grid grid-cols-1 xl:grid-cols-12 gap-10">
+            
+            <!-- LEFT: INPUT CONTROL CENTER -->
+            <div class="xl:col-span-4 space-y-8">
+                <div class="glass p-10 space-y-10 border-white/10 shadow-[0_30px_60px_rgba(0,0,0,0.5)]">
+                    <h3 class="text-2xl font-black tracking-tighter flex items-center gap-4 text-sky-400">
+                        <i data-lucide="terminal"></i> MISSION CONTROL
+                    </h3>
+
+                    <div class="space-y-8">
+                        <div class="grid grid-cols-1 gap-4">
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Academic Context</label>
+                                <select x-model="form.degree" @change="updateSubjects()" class="w-full bg-slate-950 p-5 rounded-2xl border border-white/10 text-sm font-bold focus:border-sky-500 outline-none transition-all">
+                                    <option value="B.Tech">B.Tech Specialization</option>
+                                    <option value="MBA">MBA Management</option>
+                                </select>
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Major Subject</label>
+                                <select x-model="form.subject" class="w-full bg-slate-950 p-5 rounded-2xl border border-white/10 text-sm font-bold focus:border-sky-500 outline-none transition-all">
+                                    <template x-for="s in subjects[form.degree]">
+                                        <option :value="s" x-text="s"></option>
+                                    </template>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="p-8 bg-white/5 rounded-[2.5rem] border border-white/5 space-y-8">
+                            <div>
+                                <div class="flex justify-between items-center mb-4 text-xs font-black text-slate-400 uppercase tracking-widest">
+                                    <span>Attendance Record</span>
+                                    <span x-text="form.attendance + '%'" class="text-sky-400 text-2xl font-black"></span>
+                                </div>
+                                <input type="range" x-model="form.attendance" class="w-full">
+                            </div>
+                            <div class="grid grid-cols-2 gap-6">
+                                <div class="space-y-2"><label class="text-[9px] text-slate-600 font-black uppercase tracking-tighter">Midterm I</label><input type="number" x-model="form.g1" class="bg-black p-5 rounded-2xl border border-white/5 w-full text-xl font-black text-center focus:border-sky-500 outline-none"></div>
+                                <div class="space-y-2"><label class="text-[9px] text-slate-600 font-black uppercase tracking-tighter">Midterm II</label><input type="number" x-model="form.g2" class="bg-black p-5 rounded-2xl border border-white/5 w-full text-xl font-black text-center focus:border-sky-500 outline-none"></div>
+                            </div>
+                        </div>
+
+                        <div class="p-8 bg-rose-500/5 rounded-[2.5rem] border border-rose-500/10 space-y-8">
+                            <h4 class="text-[11px] font-black text-rose-400 uppercase tracking-[0.3em] flex items-center gap-3 italic"><i data-lucide="flame"></i> Well-being Telemetry</h4>
+                            <div class="space-y-6">
+                                <div><input type="range" x-model="form.mood" min="1" max="10" class="accent-rose-500"><div class="flex justify-between text-[10px] font-black text-slate-500 mt-2 uppercase"><span>Vibe Intensity</span><span x-text="form.mood + '/10'" class="text-rose-400"></span></div></div>
+                                <div><input type="range" x-model="form.sleep" min="2" max="12" class="accent-rose-500"><div class="flex justify-between text-[10px] font-black text-slate-500 mt-2 uppercase"><span>Recovery Sleep</span><span x-text="form.sleep + 'h'" class="text-rose-400"></span></div></div>
+                            </div>
+                        </div>
+
+                        <button @click="runDiagnostic()" class="w-full py-7 bg-gradient-to-r from-sky-600 to-indigo-600 rounded-3xl font-black text-sm uppercase tracking-[0.4em] transition-all hover:scale-[1.02] shadow-2xl shadow-sky-500/20 active:scale-95 btn-glow">
+                            RUN PATHFINDER ENGINE
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT: ANALYSIS THEATER -->
+            <div x-show="results" id="capture-area" class="xl:col-span-8 space-y-10 animate-in fade-in slide-in-from-bottom-8 duration-1000">
+                
+                <!-- TOP STATS -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <div class="glass p-8 text-center border-b-4" :style="`border-color: ${results.riskColor}`">
+                        <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Academic Risk</p>
+                        <h2 x-text="results.status" :style="`color: ${results.riskColor}`" class="text-4xl font-black tracking-tighter italic"></h2>
+                    </div>
+                    <div class="glass p-8 text-center border-b-4 border-sky-500">
+                        <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Final Forecast</p>
+                        <h2 x-text="results.score + '%'" class="text-4xl font-black text-sky-400 tracking-tighter"></h2>
+                    </div>
+                    <div class="glass p-8 text-center border-b-4" :class="results.volatility >= 0 ? 'border-emerald-500' : 'border-rose-500'">
+                        <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Growth Volatility</p>
+                        <h2 x-text="results.volatility >= 0 ? '📈 +' + results.volatility : '📉 ' + results.volatility" :class="results.volatility >= 0 ? 'text-emerald-400' : 'text-rose-500'" class="text-4xl font-black tracking-tighter"></h2>
+                    </div>
+                    <div class="glass p-8 text-center border-b-4 border-indigo-500">
+                        <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Persona</p>
+                        <h2 x-text="results.persona" class="text-xs font-black text-indigo-400 uppercase mt-2 tracking-wide leading-tight"></h2>
+                    </div>
+                </div>
+
+                <!-- MAIN WORKSPACE -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                    <!-- Roadmap -->
+                    <div class="glass p-12 space-y-10 relative overflow-hidden">
+                        <div class="flex justify-between items-center relative z-10">
+                            <h4 class="text-3xl font-black italic gradient-text tracking-tighter">SUCCESS ROADMAP</h4>
+                            <button @click="downloadPDF()" class="bg-sky-500/10 text-sky-400 p-3 rounded-2xl hover:bg-sky-500/20 transition-all active:scale-90"><i data-lucide="file-down"></i></button>
+                        </div>
+                        <div class="space-y-6 relative z-10">
+                            <template x-for="(step, i) in results.roadmap">
+                                <div class="roadmap-item p-6 rounded-2xl border border-white/5 glass-card">
+                                    <p class="text-sm font-bold text-slate-200 leading-relaxed" x-text="step"></p>
+                                </div>
+                            </template>
+                        </div>
+                        <div class="absolute -right-20 -bottom-20 w-80 h-80 bg-sky-500/5 blur-[120px] rounded-full"></div>
+                    </div>
+
+                    <!-- SWOT & XAI -->
+                    <div class="space-y-10">
+                        <div class="glass p-10 border-white/5 relative">
+                            <h4 class="text-xs font-black text-slate-500 uppercase mb-10 flex items-center gap-4 tracking-[0.3em]"><i data-lucide="radar" class="w-4 h-4"></i> Explainable AI Profile</h4>
+                            <div class="h-[300px] flex items-center justify-center">
+                                <canvas id="radarChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="glass p-10">
+                            <h4 class="text-xs font-black text-slate-500 uppercase mb-8 tracking-[0.3em]">Academic SWOT Analysis</h4>
+                            <div class="grid grid-cols-2 gap-4 text-center">
+                                <div class="p-5 border border-emerald-500/20 rounded-3xl bg-emerald-500/5"><p class="text-[9px] font-black text-emerald-500 uppercase mb-2">Strength</p><p class="text-xs font-bold" x-text="results.swot.s"></p></div>
+                                <div class="p-5 border border-rose-500/20 rounded-3xl bg-rose-500/5"><p class="text-[9px] font-black text-rose-500 uppercase mb-2">Weakness</p><p class="text-xs font-bold" x-text="results.swot.w"></p></div>
+                                <div class="p-5 border border-sky-500/20 rounded-3xl bg-sky-500/5"><p class="text-[9px] font-black text-sky-500 uppercase mb-2">Opportunity</p><p class="text-xs font-bold" x-text="results.swot.o"></p></div>
+                                <div class="p-5 border border-amber-500/20 rounded-3xl bg-amber-500/5"><p class="text-[9px] font-black text-amber-500 uppercase mb-2">Threat</p><p class="text-xs font-bold" x-text="results.swot.t"></p></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RESOURCE & SIMULATOR Row -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                    <div class="glass p-10 border-emerald-500/20 bg-emerald-500/5 space-y-8">
+                        <h4 class="text-2xl font-black text-emerald-400 tracking-tighter flex items-center gap-4">
+                            <i data-lucide="library"></i> NEURAL RESOURCE HUB
+                        </h4>
+                        <div class="space-y-4">
+                            <template x-for="link in results.resources">
+                                <a :href="link.url" target="_blank" class="flex justify-between items-center p-6 bg-black/40 border border-white/5 rounded-[1.5rem] hover:border-emerald-400 hover:bg-emerald-400/10 transition-all group">
+                                    <div class="flex items-center gap-5">
+                                        <div class="p-3 bg-emerald-400/10 rounded-xl text-emerald-400"><i :data-lucide="link.icon" class="w-5 h-5"></i></div>
+                                        <span class="text-sm font-black text-slate-300 uppercase tracking-tight" x-text="link.title"></span>
+                                    </div>
+                                    <i data-lucide="external-link" class="w-5 h-5 text-slate-600 group-hover:text-emerald-400 transition-colors"></i>
+                                </a>
+                            </template>
+                        </div>
+                    </div>
+
+                    <div class="glass p-12 border-sky-500/20 flex flex-col justify-center text-center space-y-10">
+                        <h4 class="text-2xl font-black text-sky-400 tracking-tighter uppercase italic">What-If Success Simulator</h4>
+                        <div class="space-y-8">
+                            <input type="range" id="simStudy" min="0" max="30" value="0" class="accent-sky-400" @input="document.getElementById('simVal').innerText = $el.value; runSimulation()">
+                            <p class="text-sm font-bold text-slate-500 uppercase">Committing <span id="simVal" class="text-white text-xl px-2">0</span> extra hours / week</p>
+                        </div>
+                        <div class="relative">
+                            <div class="absolute inset-0 bg-emerald-500/20 blur-[60px] rounded-full"></div>
+                            <h2 id="simSuccess" class="text-9xl font-black text-emerald-400 tracking-tighter relative z-10 drop-shadow-2xl">0%</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- FOOTER NAV -->
+        <div class="mt-20 flex flex-col md:flex-row justify-between items-center gap-8 border-t border-white/5 pt-12 pb-20">
+            <div class="text-[10px] font-black uppercase tracking-[0.6em] text-slate-600">MISSION: PATHFINDER | 2026 RESEARCH INDEX</div>
+            <div class="flex gap-12 text-slate-500 text-xs font-bold uppercase tracking-widest">
+                <a @click="tab = 'sop'" class="hover:text-sky-400 cursor-pointer transition">View Methodology</a>
+                <a @click="tab = 'history'" class="hover:text-sky-400 cursor-pointer transition">Audit Logs</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPTS -->
+    <script>
+        function pathfinderApp() {
+            return {
+                tab: 'lab',
+                user: { name: '', id: '' },
+                tempName: '',
+                momentum: '+0.0',
+                history: [],
+                results: null,
+                form: { degree: 'B.Tech', subject: 'Data Structures', attendance: 75, g1: null, g2: null, mood: 7, sleep: 7 },
+                
+                subjects: {
+                    "B.Tech": ["Data Structures", "Advanced ML", "Cloud Computing", "Calculus", "Operating Systems", "Cybersecurity", "Computer Vision", "NLP"],
+                    "MBA": ["Corporate Finance", "Strategic Marketing", "Digital Transformation", "Supply Chain", "HR Analytics", "Consumer Psychology", "Business Law", "Project Mgmt"]
+                },
+
+                materials: {
+                    "Data Structures": [{ title: "MIT Algorithms Course", url: "https://ocw.mit.edu/", icon: "video" }, { title: "LeetCode Path", url: "https://leetcode.com/", icon: "code" }, { title: "GfG Roadmap", url: "https://geeksforgeeks.org", icon: "book" }],
+                    "Corporate Finance": [{ title: "Investopedia Hub", url: "https://investopedia.com", icon: "trending-up" }, { title: "HBR Finance Journal", url: "https://hbr.org", icon: "book-open" }, { title: "CFI Modeling", url: "https://corporatefinanceinstitute.com", icon: "bar-chart" }],
+                    "Advanced ML": [{ title: "Andrew Ng ML Hub", url: "https://deeplearning.ai", icon: "brain" }, { title: "Kaggle Dataset Hub", url: "https://kaggle.com", icon: "database" }],
+                    "Strategic Marketing": [{ title: "HubSpot Academy", url: "https://academy.hubspot.com", icon: "megaphone" }, { title: "Marketing Strategy Wiki", url: "https://marketingprofs.com", icon: "map" }],
+                    "default": [{ title: "KRMU Knowledge Portal", url: "https://krmangalam.edu.in", icon: "link" }, { title: "Khan Academy Engineering", url: "https://khanacademy.org", icon: "graduation-cap" }]
+                },
+
+                milestones: {
+                    "Data Structures": ["🛠️ Re-implement Linked List & Tree traversals.", "📚 Solve 2 Daily Medium tasks on LeetCode.", "🧪 Optimize Space Complexity in Lab File."],
+                    "Advanced ML": ["🤖 Tune Hyperparameters using Optuna.", "📊 Handle Class Imbalance using SMOTE.", "🧠 Implement SHAP for model explainability."],
+                    "Cloud Computing": ["🐋 Dockerize a Python Flask microservice.", "☁️ Deploy to AWS Lambda via Serverless.", "🔐 Audit IAM security configurations."],
+                    "Corporate Finance": ["📈 Model DCF & WACC in Excel.", "📖 Audit 3 Balance Sheets from HBR.", "📉 Study Ratio Analysis for mid-caps."]
+                },
+
+                init() {
+                    this.createStars();
+                    lucide.createIcons();
+                    const saved = localStorage.getItem('pf_zenith_v5');
+                    if (saved) { this.user = JSON.parse(saved); this.loadHistory(); }
+                    this.updateSubjects();
+                },
+
+                createStars() {
+                    const field = document.getElementById('starfield');
+                    for (let i = 0; i < 150; i++) {
+                        const star = document.createElement('div');
+                        star.className = 'star';
+                        const size = Math.random() * 3 + 'px';
+                        star.style.width = size; star.style.height = size;
+                        star.style.left = Math.random() * 100 + '%'; star.style.top = Math.random() * 100 + '%';
+                        star.style.setProperty('--d', Math.random() * 3 + 2 + 's');
+                        field.appendChild(star);
+                    }
+                },
+
+                updateSubjects() { this.form.subject = this.subjects[this.form.degree][0]; },
+
+                saveUser() { if(this.tempName.trim()) { this.user = { name: this.tempName, id: 'PF-'+Math.random().toString(36).substr(2,4).toUpperCase() }; localStorage.setItem('pf_zenith_v5', JSON.stringify(this.user)); } },
+
+                loadHistory() { const h = localStorage.getItem('pf_hist_'+this.user.id); this.history = h ? JSON.parse(h) : []; this.calculateMomentum(); },
+
+                calculateMomentum() { if(this.history.length > 1) { let m = (this.history[1].risk - this.history[0].risk).toFixed(1); this.momentum = (m>=0?'+':'')+m; } },
+
+                runDiagnostic() {
+                    if(!this.form.g1 || !this.form.g2) return alert("System requires scores for inference.");
+                    const vol = this.form.g2 - this.form.g1;
+                    const score = Math.min(Math.max((this.form.attendance*0.2) + (this.form.g2*0.55) + (vol*0.1) + 18, 5), 98);
+                    const burnout = (10-this.form.mood)*2.2 + (7-this.form.sleep)*2.5;
+                    const risk = Math.min(Math.max((100-score) + burnout, 5), 98);
+
+                    this.results = {
+                        status: risk > 65 ? 'CRITICAL' : risk > 35 ? 'AT-RISK' : 'SAFE',
+                        riskColor: risk > 65 ? '#f43f5e' : risk > 35 ? '#f59e0b' : '#10b981',
+                        score: score.toFixed(1),
+                        volatility: vol,
+                        persona: this.getPersona(vol, risk, burnout),
+                        swot: this.getSWOT(risk, vol, burnout),
+                        roadmap: this.getRoadmap(burnout, risk),
+                        resources: this.materials[this.form.subject] || this.materials["default"]
+                    };
+
+                    this.saveDiagnostic(score, risk);
+                    this.renderRadar(this.form.attendance, this.form.g2, this.form.mood*10, this.form.sleep*10, (100-risk));
+                    this.$nextTick(() => { lucide.createIcons(); this.runSimulation(); });
+                },
+
+                getPersona(v, r, b) { if(r>65) return "The High-Stress Decliner"; if(v<-15) return "The Silent Academic Decay"; if(r<25) return "The Resilient Alpha Learner"; return "The Mid-Syllabus Optimizer"; },
+
+                getSWOT(r, v, b) {
+                    return {
+                        s: this.form.attendance > 85 ? "Consistent Presence" : "Cognitive Baseline",
+                        w: v < 0 ? "Score Velocity Decay" : b > 12 ? "Affective Burnout" : "Conceptual Gaps",
+                        o: "Early Intervention Loop",
+                        t: v < -20 ? "Critical GPA Fall" : "Exam Anxiety"
+                    };
+                },
+
+                getRoadmap(b, r) {
+                    let p = [];
+                    if(this.form.attendance < 75) p.push("🚨 Attendance Lock: Attend next 10 classes to bridge the context gap.");
+                    if(b > 12) p.push("🧘 Neural Reset: Forced 8h sleep cycle for 3 days to reverse burnout.");
+                    return [...p, ...(this.milestones[this.form.subject] || ["Review core foundational curriculum milestones."])];
+                },
+
+                saveDiagnostic(score, risk) {
+                    const entry = { timestamp: new Date().toLocaleString(), subject: this.form.subject, score: score, risk: risk, status: risk > 65 ? 'CRITICAL' : 'SAFE', color: risk > 65 ? '#f43f5e' : '#10b981' };
+                    this.history.unshift(entry); localStorage.setItem('pf_hist_'+this.user.id, JSON.stringify(this.history)); this.calculateMomentum();
+                },
+
+                runSimulation() {
+                    const extra = parseInt(document.getElementById('simStudy').value);
+                    const sim = Math.min(parseFloat(this.results.score) + (extra * 2.8), 100);
+                    document.getElementById('simSuccess').innerText = Math.round(sim) + "%";
+                },
+
+                renderRadar(a, m, mo, s, su) {
+                    const ctx = document.getElementById('radarChart');
+                    if (window.radar) window.radar.destroy();
+                    window.radar = new Chart(ctx, {
+                        type: 'radar',
+                        data: {
+                            labels: ['ATTENDANCE', 'MARKS', 'MOOD', 'SLEEP', 'SUCCESS'],
+                            datasets: [{ data: [a, m, mo, s, su], backgroundColor: 'rgba(14, 165, 233, 0.2)', borderColor: '#0ea5e9', borderWidth: 1, pointRadius: 0 }]
+                        },
+                        options: { scales: { r: { grid: { color: '#334155' }, angleLines: { color: '#334155' }, ticks: { display: false }, min: 0, max: 100 } }, plugins: { legend: { display: false } } }
+                    });
+                },
+
+                async downloadPDF() {
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF('p', 'mm', 'a4');
+                    const name = this.user.name;
+
+                    // Branded Background
+                    doc.setFillColor(3, 7, 18); doc.rect(0, 0, 210, 297, 'F');
+
+                    // Header
+                    doc.setTextColor(14, 165, 233); doc.setFontSize(28); doc.text("PATHFINDER ZENITH REPORT", 20, 30);
+                    doc.setTextColor(100); doc.setFontSize(10); doc.text(`Candidate Identification: ${name} | UID: ${this.user.id}`, 20, 40);
+
+                    // Box
+                    doc.setDrawColor(30, 41, 59); doc.rect(15, 50, 180, 40);
+                    doc.setTextColor(255); doc.setFontSize(14); doc.text("DIAGNOSTIC STATUS: " + this.results.status, 25, 65);
+                    doc.setFontSize(11); doc.text(`Success Probability: ${this.results.score}% | Trend: ${this.results.volatility}`, 25, 75);
+
+                    // Roadmap
+                    doc.setTextColor(14, 165, 233); doc.text("PRESCRIBED RECOVERY MILESTONES", 20, 110);
+                    doc.setTextColor(200);
+                    this.results.roadmap.forEach((step, i) => {
+                        doc.text(`${i+1}. ${step}`, 25, 125 + (i*10));
+                    });
+
+                    // Hyperlinks (Manually injected for clickable PDF)
+                    doc.setTextColor(14, 165, 233); doc.text("DYNAMIC RESOURCE ACCESS (CLICKABLE)", 20, 180);
+                    this.results.resources.forEach((link, i) => {
+                        doc.textWithLink(`[ACCESS] ${link.title}`, 25, 195 + (i*12), { url: link.url });
+                    });
+
+                    doc.save(`PathFinder_ZENITH_${name}.pdf`);
+                },
+
+                showTab(t) { this.tab = t; },
+                resetSession() { localStorage.clear(); location.reload(); }
+            }
+        }
+    </script>
+</body>
+</html>
